@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>단어 입력기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            padding: 30px;
+            color: white;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .nav-menu {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: #495057;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 25px;
+            transition: all 0.3s;
+        }
+
+        .nav-menu a.active,
+        .nav-menu a:hover {
+            background: #6a11cb;
+            color: white;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .meta-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        .input-group input,
+        .input-group select {
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #6a11cb;
+        }
+
+        .textarea-section {
+            margin-bottom: 30px;
+        }
+
+        .textarea-section label {
+            display: block;
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 400px;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #6a11cb;
+        }
+
+        .format-info {
+            background: #e7f5ff;
+            border-left: 4px solid #339af0;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .format-info h3 {
+            color: #1971c2;
+            margin-bottom: 10px;
+        }
+
+        .format-info code {
+            background: white;
+            padding: 10px;
+            display: block;
+            margin-top: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(106, 17, 203, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .result-message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .result-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .result-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #6a11cb;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 단어 입력기</h1>
+            <p>효율적인 단어 데이터 관리 시스템</p>
+        </div>
+
+        <div class="nav-menu">
+            <a href="/" class="active">단어 입력</a>
+            <a href="/search">단어 조회</a>
+        </div>
+
+        <div class="content">
+            <div class="format-info">
+                <h3>📝 입력 형식</h3>
+                <p>각 줄에 하나의 단어를 입력하세요. 구분자는 파이프(|) 기호입니다.</p>
+                <code>단어|뜻|초성(선택)|예문(선택)</code>
+                <p style="margin-top: 10px;">예시:</p>
+                <code>사과|빨간 과일|ㅅㄱ|나는 사과를 좋아한다.</code>
+            </div>
+
+            <div class="meta-inputs">
+                <div class="input-group">
+                    <label for="grade">학년</label>
+                    <select id="grade" required>
+                        <option value="">학년 선택</option>
+                        <option value="1">1학년</option>
+                        <option value="2">2학년</option>
+                        <option value="3">3학년</option>
+                        <option value="4">4학년</option>
+                        <option value="5">5학년</option>
+                        <option value="6">6학년</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="source">출처</label>
+                    <input type="text" id="source" placeholder="예: 국어 교과서 3-1">
+                </div>
+            </div>
+
+            <div class="textarea-section">
+                <label for="wordInput">단어 데이터 입력</label>
+                <textarea id="wordInput" placeholder="단어|뜻|초성|예문
+사과|빨간 과일|ㅅㄱ|나는 사과를 좋아한다.
+바나나|노란 과일|ㅂㄴㄴ|원숭이는 바나나를 먹는다."></textarea>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="clearInput()">초기화</button>
+                <button class="btn btn-primary" onclick="submitWords()">저장하기</button>
+            </div>
+
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>처리 중...</p>
+            </div>
+
+            <div id="resultMessage" class="result-message"></div>
+
+            <div class="stats" id="stats">
+                <!-- 통계가 여기에 동적으로 로드됩니다 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 페이지 로드 시 통계 불러오기
+        window.onload = function() {
+            loadStats();
+        };
+
+        function submitWords() {
+            const grade = document.getElementById('grade').value;
+            const source = document.getElementById('source').value;
+            const text = document.getElementById('wordInput').value;
+
+            if (!grade) {
+                alert('학년을 선택해주세요.');
+                return;
+            }
+
+            if (!text.trim()) {
+                alert('단어 데이터를 입력해주세요.');
+                return;
+            }
+
+            // 로딩 표시
+            document.querySelector('.loading').style.display = 'block';
+            document.querySelector('.btn-primary').disabled = true;
+
+            // API 호출
+            fetch('/api/words/bulk', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    text: text,
+                    grade: parseInt(grade),
+                    source: source
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.querySelector('.loading').style.display = 'none';
+                document.querySelector('.btn-primary').disabled = false;
+
+                const resultDiv = document.getElementById('resultMessage');
+                
+                if (data.success) {
+                    resultDiv.className = 'result-message success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ 저장 완료!</strong><br>
+                        ${data.message}
+                        ${data.errors && data.errors.length > 0 ? 
+                            '<br><br>오류 내역:<br>' + data.errors.join('<br>') : ''}
+                    `;
+                } else {
+                    resultDiv.className = 'result-message error';
+                    resultDiv.innerHTML = `<strong>❌ 오류 발생:</strong> ${data.error}`;
+                }
+                
+                resultDiv.style.display = 'block';
+                
+                // 성공 시 입력 필드 초기화
+                if (data.success && data.success_count > 0) {
+                    setTimeout(() => {
+                        if (confirm('입력 필드를 초기화하시겠습니까?')) {
+                            clearInput();
+                        }
+                        loadStats(); // 통계 업데이트
+                    }, 1000);
+                }
+            })
+            .catch(error => {
+                document.querySelector('.loading').style.display = 'none';
+                document.querySelector('.btn-primary').disabled = false;
+
+                const resultDiv = document.getElementById('resultMessage');
+                resultDiv.className = 'result-message error';
+                resultDiv.innerHTML = `<strong>❌ 오류 발생:</strong> ${error.message}`;
+                resultDiv.style.display = 'block';
+            });
+        }
+
+        function clearInput() {
+            document.getElementById('wordInput').value = '';
+            document.getElementById('grade').value = '';
+            document.getElementById('source').value = '';
+            document.getElementById('resultMessage').style.display = 'none';
+        }
+
+        function loadStats() {
+            fetch('/api/stats')
+            .then(response => response.json())
+            .then(data => {
+                const statsDiv = document.getElementById('stats');
+                statsDiv.innerHTML = `
+                    <div class="stat-card">
+                        <h3>${data.total_words}</h3>
+                        <p>전체 단어 수</p>
+                    </div>
+                `;
+                
+                // 학년별 통계 추가
+                if (data.grade_stats && data.grade_stats.length > 0) {
+                    data.grade_stats.forEach(stat => {
+                        statsDiv.innerHTML += `
+                            <div class="stat-card">
+                                <h3>${stat.count}</h3>
+                                <p>${stat.grade}학년</p>
+                            </div>
+                        `;
+                    });
+                }
+            })
+            .catch(error => console.error('통계 로드 실패:', error));
+        }
+    </script>
+</body>
+</html>

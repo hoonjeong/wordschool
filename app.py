@@ -121,7 +121,8 @@ def analyze_passage():
 if __name__ == '__main__':
     # 개발 모드: 코드 변경 시 자동 재시작.
     # Flask 서버는 기본적으로 http://127.0.0.1:5000/ 에서 실행됩니다.
-    if GEMINI_API_KEY == "" or not GEMINI_API_KEY:
+    if GEMINI_API_KEY == ""
+    or not GEMINI_API_KEY:
         print("\n--- 경고 ---")
         print("GEMINI_API_KEY가 설정되지 않았거나 기본값으로 되어 있습니다.")
         print("app.py 파일 내 GEMINI_API_KEY 변수에 발급받은 실제 API 키를 붙여넣으세요.")

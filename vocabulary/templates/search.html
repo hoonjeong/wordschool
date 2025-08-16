@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>단어 조회</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            padding: 30px;
+            color: white;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .nav-menu {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: #495057;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 25px;
+            transition: all 0.3s;
+        }
+
+        .nav-menu a.active,
+        .nav-menu a:hover {
+            background: #6a11cb;
+            color: white;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .search-filters {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: #6a11cb;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-search {
+            background: #6a11cb;
+            color: white;
+        }
+
+        .btn-search:hover {
+            background: #5a01bb;
+            transform: translateY(-2px);
+        }
+
+        .btn-reset {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #5a6268;
+        }
+
+        .btn-download {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-download:hover {
+            background: #218838;
+        }
+
+        .btn-download:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .results-section {
+            margin-top: 30px;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .results-info {
+            font-size: 1.1em;
+            color: #495057;
+        }
+
+        .export-options {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        thead {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .checkbox-cell {
+            width: 40px;
+        }
+
+        .word-cell {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .example-cell {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+
+        .action-cell {
+            width: 100px;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+            padding: 5px 15px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .page-btn {
+            padding: 8px 15px;
+            border: 2px solid #6a11cb;
+            background: white;
+            color: #6a11cb;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .page-btn:hover,
+        .page-btn.active {
+            background: #6a11cb;
+            color: white;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+            font-size: 1.2em;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #6a11cb;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 400px;
+            text-align: center;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 단어 조회</h1>
+            <p>저장된 단어를 검색하고 관리하세요</p>
+        </div>
+
+        <div class="nav-menu">
+            <a href="/">단어 입력</a>
+            <a href="/search" class="active">단어 조회</a>
+        </div>
+
+        <div class="content">
+            <div class="search-filters">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="searchWord">단어 검색</label>
+                        <input type="text" id="searchWord" placeholder="검색할 단어 입력">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterGrade">학년</label>
+                        <select id="filterGrade">
+                            <option value="">전체</option>
+                            <option value="1">1학년</option>
+                            <option value="2">2학년</option>
+                            <option value="3">3학년</option>
+                            <option value="4">4학년</option>
+                            <option value="5">5학년</option>
+                            <option value="6">6학년</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterSource">출처</label>
+                        <input type="text" id="filterSource" placeholder="출처 검색">
+                    </div>
+                </div>
+                <div class="button-row">
+                    <button class="btn btn-reset" onclick="resetFilters()">초기화</button>
+                    <button class="btn btn-search" onclick="searchWords(1)">검색</button>
+                </div>
+            </div>
+
+            <div class="results-section">
+                <div class="results-header">
+                    <div class="results-info">
+                        <span id="totalCount">총 0개</span>의 단어가 검색되었습니다.
+                    </div>
+                    <div class="export-options">
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" id="exportWord" checked> 단어</label>
+                            <label><input type="checkbox" id="exportMeaning" checked> 뜻</label>
+                            <label><input type="checkbox" id="exportInitial"> 초성</label>
+                            <label><input type="checkbox" id="exportExample"> 예문</label>
+                            <label><input type="checkbox" id="exportGrade"> 학년</label>
+                            <label><input type="checkbox" id="exportSource"> 출처</label>
+                        </div>
+                        <button class="btn btn-download" onclick="downloadPDF()" id="downloadBtn" disabled>
+                            PDF 다운로드
+                        </button>
+                    </div>
+                </div>
+
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>검색 중...</p>
+                </div>
+
+                <div id="resultsTable">
+                    <!-- 검색 결과 테이블이 여기에 동적으로 로드됩니다 -->
+                </div>
+
+                <div class="pagination" id="pagination">
+                    <!-- 페이지네이션이 여기에 동적으로 로드됩니다 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <h3>정말 삭제하시겠습니까?</h3>
+            <p>이 작업은 되돌릴 수 없습니다.</p>
+            <div class="modal-buttons">
+                <button class="btn btn-reset" onclick="closeDeleteModal()">취소</button>
+                <button class="btn btn-delete" onclick="confirmDelete()">삭제</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        let totalPages = 1;
+        let selectedWords = new Set();
+        let deleteWordId = null;
+
+        // 페이지 로드 시 검색 실행
+        window.onload = function() {
+            searchWords(1);
+        };
+
+        function searchWords(page) {
+            currentPage = page;
+            const searchWord = document.getElementById('searchWord').value;
+            const grade = document.getElementById('filterGrade').value;
+            const source = document.getElementById('filterSource').value;
+
+            // 로딩 표시
+            document.querySelector('.loading').style.display = 'block';
+            document.getElementById('resultsTable').innerHTML = '';
+
+            // API 호출
+            const params = new URLSearchParams({
+                page: page,
+                per_page: 20
+            });
+
+            if (searchWord) params.append('word', searchWord);
+            if (grade) params.append('grade', grade);
+            if (source) params.append('source', source);
+
+            fetch(`/api/words?${params}`)
+            .then(response => response.json())
+            .then(data => {
+                document.querySelector('.loading').style.display = 'none';
+                displayResults(data);
+            })
+            .catch(error => {
+                document.querySelector('.loading').style.display = 'none';
+                console.error('검색 실패:', error);
+                document.getElementById('resultsTable').innerHTML = 
+                    '<div class="no-results">검색 중 오류가 발생했습니다.</div>';
+            });
+        }
+
+        function displayResults(data) {
+            const totalCount = document.getElementById('totalCount');
+            totalCount.textContent = `총 ${data.total}개`;
+
+            if (data.words.length === 0) {
+                document.getElementById('resultsTable').innerHTML = 
+                    '<div class="no-results">검색 결과가 없습니다.</div>';
+                document.getElementById('pagination').innerHTML = '';
+                document.getElementById('downloadBtn').disabled = true;
+                return;
+            }
+
+            // 테이블 생성
+            let tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="checkbox-cell">
+                                <input type="checkbox" onchange="toggleAll(this)">
+                            </th>
+                            <th>단어</th>
+                            <th>뜻</th>
+                            <th>초성</th>
+                            <th>예문</th>
+                            <th>학년</th>
+                            <th>출처</th>
+                            <th>등록일</th>
+                            <th>관리</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            data.words.forEach(word => {
+                tableHTML += `
+                    <tr>
+                        <td class="checkbox-cell">
+                            <input type="checkbox" value="${word.id}" 
+                                ${selectedWords.has(word.id) ? 'checked' : ''}
+                                onchange="toggleWord(${word.id})">
+                        </td>
+                        <td class="word-cell">${word.word}</td>
+                        <td>${word.meaning}</td>
+                        <td>${word.initial || '-'}</td>
+                        <td class="example-cell">${word.example || '-'}</td>
+                        <td>${word.grade ? word.grade + '학년' : '-'}</td>
+                        <td>${word.source || '-'}</td>
+                        <td>${word.created_at ? word.created_at.split(' ')[0] : '-'}</td>
+                        <td class="action-cell">
+                            <button class="btn-delete" onclick="deleteWord(${word.id})">삭제</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += '</tbody></table>';
+            document.getElementById('resultsTable').innerHTML = tableHTML;
+
+            // 페이지네이션 생성
+            totalPages = data.total_pages;
+            displayPagination();
+
+            // 다운로드 버튼 활성화
+            updateDownloadButton();
+        }
+
+        function displayPagination() {
+            let paginationHTML = '';
+
+            // 이전 페이지
+            if (currentPage > 1) {
+                paginationHTML += `<button class="page-btn" onclick="searchWords(${currentPage - 1})">이전</button>`;
+            }
+
+            // 페이지 번호
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHTML += `
+                    <button class="page-btn ${i === currentPage ? 'active' : ''}" 
+                            onclick="searchWords(${i})">${i}</button>
+                `;
+            }
+
+            // 다음 페이지
+            if (currentPage < totalPages) {
+                paginationHTML += `<button class="page-btn" onclick="searchWords(${currentPage + 1})">다음</button>`;
+            }
+
+            document.getElementById('pagination').innerHTML = paginationHTML;
+        }
+
+        function toggleAll(checkbox) {
+            const checkboxes = document.querySelectorAll('tbody input[type="checkbox"]');
+            checkboxes.forEach(cb => {
+                cb.checked = checkbox.checked;
+                const wordId = parseInt(cb.value);
+                if (checkbox.checked) {
+                    selectedWords.add(wordId);
+                } else {
+                    selectedWords.delete(wordId);
+                }
+            });
+            updateDownloadButton();
+        }
+
+        function toggleWord(wordId) {
+            if (selectedWords.has(wordId)) {
+                selectedWords.delete(wordId);
+            } else {
+                selectedWords.add(wordId);
+            }
+            updateDownloadButton();
+        }
+
+        function updateDownloadButton() {
+            document.getElementById('downloadBtn').disabled = selectedWords.size === 0;
+        }
+
+        function resetFilters() {
+            document.getElementById('searchWord').value = '';
+            document.getElementById('filterGrade').value = '';
+            document.getElementById('filterSource').value = '';
+            searchWords(1);
+        }
+
+        function downloadPDF() {
+            if (selectedWords.size === 0) {
+                alert('다운로드할 단어를 선택해주세요.');
+                return;
+            }
+
+            const fields = [];
+            if (document.getElementById('exportWord').checked) fields.push('word');
+            if (document.getElementById('exportMeaning').checked) fields.push('meaning');
+            if (document.getElementById('exportInitial').checked) fields.push('initial');
+            if (document.getElementById('exportExample').checked) fields.push('example');
+            if (document.getElementById('exportGrade').checked) fields.push('grade');
+            if (document.getElementById('exportSource').checked) fields.push('source');
+
+            if (fields.length === 0) {
+                alert('최소 하나의 필드를 선택해주세요.');
+                return;
+            }
+
+            fetch('/api/words/download-pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    word_ids: Array.from(selectedWords),
+                    fields: fields
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                }
+                throw new Error('PDF 생성 실패');
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `vocabulary_${new Date().getTime()}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            })
+            .catch(error => {
+                alert('PDF 다운로드 중 오류가 발생했습니다.');
+                console.error(error);
+            });
+        }
+
+        function deleteWord(wordId) {
+            deleteWordId = wordId;
+            document.getElementById('deleteModal').style.display = 'block';
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+            deleteWordId = null;
+        }
+
+        function confirmDelete() {
+            if (!deleteWordId) return;
+
+            fetch(`/api/words/${deleteWordId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeDeleteModal();
+                    searchWords(currentPage); // 현재 페이지 새로고침
+                } else {
+                    alert('삭제 중 오류가 발생했습니다.');
+                }
+            })
+            .catch(error => {
+                alert('삭제 중 오류가 발생했습니다.');
+                console.error(error);
+            });
+        }
+    </script>
+</body>
+</html>

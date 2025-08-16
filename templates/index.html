@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>국어 독해 분석기 - 1단계: 지문 입력</title>
+    <style>
+        /* 기본 스타일 */
+        body {
+            font-family: 'Malgun Gothic', '맑은 고딕', Dotum, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* 프로세스 메뉴 스타일 */
+        .process-menu {
+            display: flex;
+            justify-content: space-around;
+            background-color: #e9ecef;
+            padding: 15px 0;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .process-menu a {
+            text-decoration: none;
+            color: #555;
+            font-weight: bold;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .process-menu a:hover {
+            background-color: #dee2e6;
+            color: #007bff;
+        }
+
+        .process-menu a.current-step {
+            background-color: #007bff;
+            color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
+        }
+
+        /* 지문 입력 섹션 스타일 */
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-section h2 {
+            color: #34495e;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+
+        #passageInput {
+            width: calc(100% - 20px); /* 패딩 고려 */
+            min-height: 400px; /* 충분한 높이 */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+            resize: vertical; /* 수직 크기 조절 가능 */
+            box-sizing: border-box; /* 패딩이 width에 포함되도록 */
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: flex-end; /* 버튼을 오른쪽으로 정렬 */
+            gap: 10px; /* 버튼 사이 간격 */
+            margin-top: 20px;
+        }
+
+        .button-group button {
+            padding: 12px 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        #analyzeButton {
+            background-color: #007bff;
+            color: white;
+        }
+
+        #analyzeButton:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        #resetButton {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        #resetButton:hover {
+            background-color: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .container {
+                margin: 15px;
+                padding: 15px;
+            }
+            .process-menu {
+                flex-direction: column; /* 세로로 쌓이도록 */
+                gap: 5px;
+            }
+            .process-menu a {
+                padding: 10px;
+                text-align: center;
+            }
+            #passageInput {
+                min-height: 300px;
+            }
+            .button-group {
+                flex-direction: column; /* 버튼 세로로 쌓이도록 */
+                align-items: stretch; /* 버튼 가로 꽉 채우기 */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>국어 독해 분석기</h1>
+
+        <div class="process-menu">
+            <a href="index.html" class="current-step">1단계: 지문 입력하기</a>
+            <a href="step2.html">2단계: 핵심 문단 찾기</a>
+            <a href="step3.html">3단계: 관계 파악하기</a>
+            <a href="step4.html">4단계: 구조화 및 주제</a>
+            <a href="step5.html">5단계: 문제 해결 훈련</a>
+        </div>
+
+        <div class="input-section">
+            <h2>1단계: 지문 입력</h2>
+            <p>분석하고자 하는 국어 지문(텍스트)을 아래 입력창에 직접 입력하거나 붙여넣어 주세요.</p>
+            <textarea id="passageInput" placeholder="" "rows="20" cols="80">우리는 왜 고전을 읽어야 하는가? 고전은 오랜 세월 많은 사람에게 읽히면서 그 가치를 인정받은 책들을 말한다. 고전은 단순히 오래된 책이 아니다. 그것은 시대를 초월하여 인간 본연의 문제와 삶의 지혜를 담고 있으며, 우리가 살아가는 현재를 이해하고 미래를 통찰하는 데 도움을 준다.&#10;&#10;고전 읽기는 사고력을 확장하는 데 중요한 역할을 한다. 다양한 시대와 문화의 사상을 접하며 우리의 시야를 넓히고, 비판적 사고를 기를 수 있게 한다. 또한, 고전 속에는 복잡한 사회 문제를 해결하는 데 필요한 통찰력과 윤리적 가치관이 담겨 있어, 우리가 더 나은 결정을 내릴 수 있도록 돕는다.&#10;&#10;특히, 고전은 비판적 사고 능력을 배양하는 데 필수적이다. 고전의 저자들은 당대의 통념에 도전하고 새로운 사유를 제시하는 경우가 많다. 이를 통해 독자는 주어진 정보만을 수용하는 것이 아니라, 스스로 질문하고 분석하며 자신만의 관점을 형성하는 훈련을 할 수 있다.&#10;&#10;또한, 고전은 인문학적 소양을 풍부하게 한다. 역사, 철학, 문학 등 다양한 분야의 고전을 접하면서 우리는 인류의 지적 유산을 이해하고, 복잡한 현대 사회를 다각적으로 조망할 수 있는 통찰력을 얻게 된다. 이는 단순히 지식을 암기하는 것을 넘어, 삶의 의미와 가치를 탐색하는 데 중요한 기반이 된다.&#10;&#10;결론적으로, 고전은 과거의 유물이 아니라 현재와 미래를 위한 강력한 도구이다. 꾸준한 고전 읽기를 통해 우리는 더욱 깊이 있고 풍요로운 삶을 살아갈 수 있을 것이다."
+            </textarea>
+            <div class="button-group">
+                <button id="resetButton">지문 초기화</button>
+                <button id="analyzeButton">지문 분석 시작</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const passageInput = document.getElementById('passageInput');
+            const resetButton = document.getElementById('resetButton');
+            const analyzeButton = document.getElementById('analyzeButton');
+
+            // 지문 초기화 기능
+            resetButton.addEventListener('click', function() {
+                passageInput.value = '';
+                passageInput.focus();
+                alert('지문이 초기화되었습니다.');
+            });
+
+            // 지문 분석 시작 기능 (localStorage에 저장 후 2단계 페이지로 이동)
+            analyzeButton.addEventListener('click', function() {
+                const passageContent = passageInput.value.trim();
+                if (passageContent === '') {
+                    alert('분석할 지문을 입력해주세요.');
+                    return;
+                }
+
+                // 지문 내용을 localStorage에 저장
+                localStorage.setItem('currentPassage', passageContent);
+
+                // 2단계 페이지로 이동
+                window.location.href = 'step2';
+            });
+
+            passageInput.focus();
+        });
+    </script>
+</body>
+</html>

@@ -15,19 +15,33 @@ import io
 
 app = Flask(__name__)
 
-# 데이터베이스 설정 (SQLite 사용)
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "vocabulary.db")}'
+# 데이터베이스 설정 (MySQL 원격 서버)
+# SQLite에서 MySQL로 변경
+# app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "vocabulary.db")}'
+
+# MySQL 원격 데이터베이스 설정
+MYSQL_HOST = '27.96.131.14'
+MYSQL_PORT = 3306
+MYSQL_USER = 'edenmanager'
+MYSQL_PASSWORD = 'Dlemsrydbr1!'
+MYSQL_DATABASE = 'edenschool'
+
+# MySQL 연결 문자열
+app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}?charset=utf8mb4'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JSON_AS_ASCII'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_recycle': 3600,  # 1시간마다 연결 재활용
+    'pool_pre_ping': True,  # 연결 확인
+}
 
 db = SQLAlchemy(app)
 
 # 데이터베이스 모델 정의
 class Word(db.Model):
-    __tablename__ = 'words'
+    __tablename__ = 'vocabulary_words'  # 테이블명 변경 (기존 테이블과 충돌 방지)
     
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     word = db.Column(db.String(100), nullable=False)
     meaning = db.Column(db.Text, nullable=False)
     initial = db.Column(db.String(50))  # 초성
@@ -331,7 +345,32 @@ def get_stats():
 if __name__ == '__main__':
     # 데이터베이스 초기화
     with app.app_context():
-        db.create_all()
-        print("데이터베이스 테이블이 생성되었습니다.")
+        try:
+            # MySQL 연결 테스트
+            db.engine.connect()
+            print("[SUCCESS] MySQL database connected successfully.")
+            print(f"   Server: {MYSQL_HOST}:{MYSQL_PORT}")
+            print(f"   Database: {MYSQL_DATABASE}")
+            print(f"   User: {MYSQL_USER}")
+            
+            # 테이블 생성
+            db.create_all()
+            print("[SUCCESS] Database tables created.")
+            
+            # 테이블 확인
+            from sqlalchemy import inspect
+            inspector = inspect(db.engine)
+            tables = inspector.get_table_names()
+            if 'vocabulary_words' in tables:
+                print("[SUCCESS] vocabulary_words table confirmed.")
+            
+        except Exception as e:
+            print(f"[ERROR] Database connection failed: {e}")
+            print("\nFalling back to local SQLite...")
+            # SQLite로 폴백
+            basedir = os.path.abspath(os.path.dirname(__file__))
+            app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "vocabulary.db")}'
+            db.create_all()
+            print("[SUCCESS] Using local SQLite database.")
     
     app.run(debug=True, port=5001)  # 기존 앱과 포트 충돌 방지

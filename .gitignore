@@ -54,6 +54,7 @@ instance/
 config.py
 secrets.py
 .env
+vocabulary/.env
 
 # Testing
 .coverage

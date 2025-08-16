@@ -3,6 +3,10 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import json
 import os
+from dotenv import load_dotenv
+
+# .env 파일 로드
+load_dotenv()
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
@@ -20,11 +24,12 @@ app = Flask(__name__)
 # app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "vocabulary.db")}'
 
 # MySQL 원격 데이터베이스 설정
-MYSQL_HOST = '27.96.131.14'
-MYSQL_PORT = 3306
-MYSQL_USER = 'edenmanager'
-MYSQL_PASSWORD = 'Dlemsrydbr1!'
-MYSQL_DATABASE = 'edenschool'
+# 환경 변수에서 가져오기 (보안을 위해)
+MYSQL_HOST = os.environ.get('MYSQL_HOST', 'localhost')
+MYSQL_PORT = int(os.environ.get('MYSQL_PORT', 3306))
+MYSQL_USER = os.environ.get('MYSQL_USER', 'root')
+MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD', '')
+MYSQL_DATABASE = os.environ.get('MYSQL_DATABASE', 'vocabulary')
 
 # MySQL 연결 문자열
 app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}?charset=utf8mb4'

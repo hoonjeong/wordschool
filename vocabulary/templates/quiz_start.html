@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>어휘 퀴즈</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 500px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+            font-weight: 500;
+            font-size: 1.1em;
+        }
+        
+        select, input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        select:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .timer-info {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+        
+        .timer-info p {
+            color: #666;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        
+        .start-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+        
+        .start-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .back-button {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.95em;
+            transition: color 0.3s;
+        }
+        
+        .back-button:hover {
+            color: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 어휘 퀴즈 시작</h1>
+        
+        <form id="quizSettingsForm">
+            <div class="form-group">
+                <label for="grade">학년 선택</label>
+                <select id="grade" name="grade" required>
+                    <option value="">학년을 선택하세요</option>
+                    <option value="1">1학년</option>
+                    <option value="2">2학년</option>
+                    <option value="3">3학년</option>
+                    <option value="4">4학년</option>
+                    <option value="5">5학년</option>
+                    <option value="6">6학년</option>
+                    <option value="all">전체</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="timerDuration">문제당 시간 (초)</label>
+                <input type="number" id="timerDuration" name="timerDuration" 
+                       min="10" max="60" value="20" required>
+                <div class="timer-info">
+                    <p>• 전체 시간의 절반이 지나면 자동으로 초성 힌트가 표시됩니다</p>
+                    <p>• 힌트 전 정답: 2점, 힌트 후 정답: 1점</p>
+                </div>
+            </div>
+            
+            <button type="submit" class="start-button">퀴즈 시작하기</button>
+        </form>
+        
+        <a href="/" class="back-button">← 돌아가기</a>
+    </div>
+    
+    <script>
+        document.getElementById('quizSettingsForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const grade = document.getElementById('grade').value;
+            const timerDuration = document.getElementById('timerDuration').value;
+            
+            if (!grade) {
+                alert('학년을 선택해주세요!');
+                return;
+            }
+            
+            // 퀴즈 페이지로 이동
+            window.location.href = `/quiz?grade=${grade}&timer=${timerDuration}`;
+        });
+    </script>
+</body>
+</html>

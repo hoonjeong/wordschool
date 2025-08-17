@@ -237,7 +237,7 @@
         }
 
         .action-cell {
-            width: 100px;
+            width: 150px;
         }
 
         .btn-delete {
@@ -252,6 +252,26 @@
 
         .btn-delete:hover {
             background: #c82333;
+        }
+        
+        .btn-edit {
+            background: #28a745;
+            color: white;
+            padding: 5px 15px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        
+        .btn-edit:hover {
+            background: #218838;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
         }
 
         .pagination {
@@ -331,6 +351,117 @@
             justify-content: center;
             margin-top: 20px;
         }
+        
+        /* 편집 모달 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .modal-header h2 {
+            color: #333;
+            margin: 0;
+        }
+        
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 20px;
+        }
+        
+        .close:hover {
+            color: #000;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: bold;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #6a11cb;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        
+        .btn-save, .btn-cancel {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-save {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+        }
+        
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.3);
+        }
+        
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-cancel:hover {
+            background: #5a6268;
+        }
     </style>
 </head>
 <body>
@@ -343,6 +474,7 @@
         <div class="nav-menu">
             <a href="/">단어 입력</a>
             <a href="/search" class="active">단어 조회</a>
+            <a href="/quiz/start" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">📝 퀴즈 시작</a>
         </div>
 
         <div class="content">
@@ -516,7 +648,10 @@
                         <td>${word.source || '-'}</td>
                         <td>${word.created_at ? word.created_at.split(' ')[0] : '-'}</td>
                         <td class="action-cell">
-                            <button class="btn-delete" onclick="deleteWord(${word.id})">삭제</button>
+                            <div class="action-buttons">
+                                <button class="btn-edit" onclick="openEditModal(${word.id})">편집</button>
+                                <button class="btn-delete" onclick="deleteWord(${word.id})">삭제</button>
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -675,6 +810,114 @@
                 console.error(error);
             });
         }
+        
+        // 편집 모달 관련 함수
+        function openEditModal(id) {
+            // 현재 데이터 가져오기
+            fetch(`/api/word/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('editWordId').value = data.id;
+                    document.getElementById('editWord').value = data.word;
+                    document.getElementById('editMeaning').value = data.meaning;
+                    document.getElementById('editExample').value = data.example || '';
+                    document.getElementById('editGrade').value = data.grade || '';
+                    document.getElementById('editSource').value = data.source || '';
+                    document.getElementById('editModal').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('단어 정보를 불러오는데 실패했습니다.');
+                });
+        }
+        
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+        
+        function saveEdit() {
+            const id = document.getElementById('editWordId').value;
+            const data = {
+                word: document.getElementById('editWord').value,
+                meaning: document.getElementById('editMeaning').value,
+                example: document.getElementById('editExample').value,
+                grade: document.getElementById('editGrade').value,
+                source: document.getElementById('editSource').value
+            };
+            
+            fetch(`/api/word/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert('수정되었습니다!');
+                    closeEditModal();
+                    searchWords(); // 목록 새로고침
+                } else {
+                    alert('수정 중 오류가 발생했습니다.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('수정 중 오류가 발생했습니다.');
+            });
+        }
+        
+        // 모달 외부 클릭시 닫기
+        window.onclick = function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target == modal) {
+                closeEditModal();
+            }
+        }
     </script>
+    
+    <!-- 편집 모달 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>단어 편집</h2>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <input type="hidden" id="editWordId">
+            <div class="form-group">
+                <label for="editWord">단어</label>
+                <input type="text" id="editWord" required>
+            </div>
+            <div class="form-group">
+                <label for="editMeaning">뜻</label>
+                <textarea id="editMeaning" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="editExample">예문</label>
+                <textarea id="editExample" rows="2"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="editGrade">학년</label>
+                <select id="editGrade">
+                    <option value="">선택하세요</option>
+                    <option value="1">1학년</option>
+                    <option value="2">2학년</option>
+                    <option value="3">3학년</option>
+                    <option value="4">4학년</option>
+                    <option value="5">5학년</option>
+                    <option value="6">6학년</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="editSource">출처</label>
+                <input type="text" id="editSource">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeEditModal()">취소</button>
+                <button class="btn-save" onclick="saveEdit()">저장</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

@@ -56,6 +56,16 @@
             border-radius: 25px;
             transition: all 0.3s;
         }
+        
+        .nav-menu .quiz-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .nav-menu .quiz-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
 
         .nav-menu a.active,
         .nav-menu a:hover {
@@ -262,6 +272,7 @@
         <div class="nav-menu">
             <a href="/" class="active">단어 입력</a>
             <a href="/search">단어 조회</a>
+            <a href="/quiz/start" class="quiz-btn">📝 퀴즈 시작</a>
         </div>
 
         <div class="content">

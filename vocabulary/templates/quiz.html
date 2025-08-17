@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>어휘 퀴즈 진행중</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .quiz-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 600px;
+        }
+        
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .score-display {
+            font-size: 1.2em;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .timer-display {
+            font-size: 1.5em;
+            font-weight: bold;
+            padding: 10px 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .timer-warning {
+            background: #ffe0e0;
+            color: #d00;
+        }
+        
+        .question-section {
+            margin-bottom: 30px;
+        }
+        
+        .question-label {
+            font-size: 0.9em;
+            color: #888;
+            margin-bottom: 10px;
+        }
+        
+        .question-display {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            font-size: 1.3em;
+            text-align: center;
+            margin-bottom: 20px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .hint-display {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            display: none;
+        }
+        
+        .hint-display.active {
+            display: block;
+        }
+        
+        .answer-section {
+            margin-bottom: 20px;
+        }
+        
+        .answer-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+        
+        .answer-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .answer-input.correct {
+            border-color: #4caf50;
+            background: #e8f5e9;
+        }
+        
+        .answer-input.incorrect {
+            border-color: #f44336;
+            background: #ffebee;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-hint {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .feedback {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            display: none;
+        }
+        
+        .feedback.correct {
+            background: #e8f5e9;
+            color: #4caf50;
+        }
+        
+        .feedback.incorrect {
+            background: #ffebee;
+            color: #f44336;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s;
+        }
+        
+        .word-count {
+            text-align: center;
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2em;
+            color: #667eea;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .loading-dots {
+            animation: pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="quiz-header">
+            <div class="score-display">점수: <span id="score">0</span></div>
+            <div class="timer-display" id="timer">20</div>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+        </div>
+        
+        <div class="word-count" id="wordCount">1번째 문제</div>
+        
+        <div class="question-section">
+            <div class="question-label">다음 설명에 해당하는 단어를 입력하세요:</div>
+            <div class="question-display" id="questionDisplay">
+                <span id="questionText">문제를 불러오는 중...</span>
+                <div class="hint-display" id="hintDisplay"></div>
+            </div>
+        </div>
+        
+        <div class="feedback" id="feedback"></div>
+        
+        <div class="answer-section">
+            <input type="text" 
+                   class="answer-input" 
+                   id="answerInput" 
+                   placeholder="정답을 입력하세요"
+                   autocomplete="off">
+        </div>
+        
+        <div class="button-group">
+            <button class="btn btn-hint" id="hintBtn">초성 힌트</button>
+            <button class="btn btn-primary" id="submitBtn">제출</button>
+            <button class="btn btn-secondary" id="passBtn">패스</button>
+        </div>
+        
+        <button class="btn btn-danger" id="endBtn">퀴즈 종료</button>
+    </div>
+    
+    <script>
+        // 퀴즈 상태 관리
+        let quizState = {
+            grade: new URLSearchParams(window.location.search).get('grade') || 'all',
+            timerDuration: parseInt(new URLSearchParams(window.location.search).get('timer')) || 20,
+            currentWord: null,
+            score: 0,
+            wordCount: 0,
+            usedWordIds: [],
+            timer: null,
+            timeRemaining: 20,
+            hintShown: false,
+            answerSubmitted: false
+        };
+        
+        // 타이머 시작
+        function startTimer() {
+            clearInterval(quizState.timer);
+            quizState.timeRemaining = quizState.timerDuration;
+            quizState.hintShown = false;
+            quizState.answerSubmitted = false;
+            updateTimerDisplay();
+            
+            quizState.timer = setInterval(() => {
+                quizState.timeRemaining--;
+                updateTimerDisplay();
+                
+                // 절반 시간에 자동 힌트
+                if (quizState.timeRemaining <= quizState.timerDuration / 2 && !quizState.hintShown) {
+                    showHint();
+                }
+                
+                // 시간 종료
+                if (quizState.timeRemaining <= 0) {
+                    clearInterval(quizState.timer);
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+        
+        // 타이머 디스플레이 업데이트
+        function updateTimerDisplay() {
+            const timerEl = document.getElementById('timer');
+            timerEl.textContent = quizState.timeRemaining;
+            
+            if (quizState.timeRemaining <= quizState.timerDuration / 2) {
+                timerEl.classList.add('timer-warning');
+            } else {
+                timerEl.classList.remove('timer-warning');
+            }
+            
+            // 프로그레스 바 업데이트
+            const progress = ((quizState.timerDuration - quizState.timeRemaining) / quizState.timerDuration) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+        
+        // 새 문제 가져오기
+        async function loadNewQuestion() {
+            try {
+                const response = await fetch('/api/quiz/next', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        grade: quizState.grade,
+                        usedIds: quizState.usedWordIds
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert('더 이상 문제가 없습니다!');
+                    endQuiz();
+                    return;
+                }
+                
+                quizState.currentWord = data;
+                quizState.usedWordIds.push(data.id);
+                quizState.wordCount++;
+                
+                displayQuestion();
+                startTimer();
+                
+            } catch (error) {
+                console.error('Error loading question:', error);
+                alert('문제를 불러오는 중 오류가 발생했습니다.');
+            }
+        }
+        
+        // 문제 표시
+        function displayQuestion() {
+            document.getElementById('questionText').textContent = quizState.currentWord.meaning;
+            document.getElementById('wordCount').textContent = `${quizState.wordCount}번째 문제`;
+            document.getElementById('answerInput').value = '';
+            document.getElementById('answerInput').className = 'answer-input';
+            document.getElementById('answerInput').focus();
+            document.getElementById('feedback').style.display = 'none';
+            document.getElementById('hintDisplay').classList.remove('active');
+        }
+        
+        // 초성 힌트 표시
+        function showHint() {
+            if (!quizState.hintShown && quizState.currentWord) {
+                fetch('/api/quiz/hint', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        word: quizState.currentWord.word
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('hintDisplay').textContent = `힌트: ${data.hint}`;
+                    document.getElementById('hintDisplay').classList.add('active');
+                    quizState.hintShown = true;
+                });
+            }
+        }
+        
+        // 답안 제출
+        async function submitAnswer() {
+            if (quizState.answerSubmitted) return;
+            
+            const answer = document.getElementById('answerInput').value.trim();
+            if (!answer) {
+                alert('답을 입력해주세요!');
+                return;
+            }
+            
+            quizState.answerSubmitted = true;
+            clearInterval(quizState.timer);
+            
+            const isCorrect = answer === quizState.currentWord.word;
+            const points = isCorrect ? (quizState.hintShown ? 1 : 2) : 0;
+            
+            if (isCorrect) {
+                quizState.score += points;
+                document.getElementById('score').textContent = quizState.score;
+                document.getElementById('answerInput').classList.add('correct');
+                showFeedback(`정답입니다! +${points}점`, 'correct');
+            } else {
+                document.getElementById('answerInput').classList.add('incorrect');
+                showFeedback(`오답입니다. 정답: ${quizState.currentWord.word}`, 'incorrect');
+            }
+            
+            setTimeout(() => {
+                loadNewQuestion();
+            }, 2000);
+        }
+        
+        // 피드백 표시
+        function showFeedback(message, type) {
+            const feedbackEl = document.getElementById('feedback');
+            feedbackEl.textContent = message;
+            feedbackEl.className = `feedback ${type}`;
+            feedbackEl.style.display = 'block';
+        }
+        
+        // 시간 초과 처리
+        function handleTimeout() {
+            if (!quizState.answerSubmitted) {
+                showFeedback(`시간 초과! 정답: ${quizState.currentWord.word}`, 'incorrect');
+                document.getElementById('answerInput').classList.add('incorrect');
+                
+                setTimeout(() => {
+                    loadNewQuestion();
+                }, 2000);
+            }
+        }
+        
+        // 퀴즈 종료
+        function endQuiz() {
+            clearInterval(quizState.timer);
+            if (confirm(`퀴즈를 종료하시겠습니까?\n\n최종 점수: ${quizState.score}점\n푼 문제: ${quizState.wordCount}개`)) {
+                window.location.href = '/quiz/start';
+            }
+        }
+        
+        // 이벤트 리스너
+        document.getElementById('hintBtn').addEventListener('click', showHint);
+        document.getElementById('submitBtn').addEventListener('click', submitAnswer);
+        document.getElementById('passBtn').addEventListener('click', () => {
+            clearInterval(quizState.timer);
+            showFeedback(`패스! 정답: ${quizState.currentWord.word}`, 'incorrect');
+            setTimeout(() => {
+                loadNewQuestion();
+            }, 1500);
+        });
+        document.getElementById('endBtn').addEventListener('click', endQuiz);
+        
+        document.getElementById('answerInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitAnswer();
+            }
+        });
+        
+        // 퀴즈 시작
+        loadNewQuestion();
+    </script>
+</body>
+</html>

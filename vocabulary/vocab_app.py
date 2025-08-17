@@ -23,16 +23,9 @@ app = Flask(__name__)
 # SQLite에서 MySQL로 변경
 # app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "vocabulary.db")}'
 
-# MySQL 원격 데이터베이스 설정
-# 환경 변수에서 가져오기 (보안을 위해)
-MYSQL_HOST = os.environ.get('MYSQL_HOST', 'localhost')
-MYSQL_PORT = int(os.environ.get('MYSQL_PORT', 3306))
-MYSQL_USER = os.environ.get('MYSQL_USER', 'root')
-MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD', '')
-MYSQL_DATABASE = os.environ.get('MYSQL_DATABASE', 'vocabulary')
-
-# MySQL 연결 문자열
-app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}?charset=utf8mb4'
+# 데이터베이스 설정 - SQLite 사용
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "vocabulary.db")}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JSON_AS_ASCII'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
@@ -347,35 +340,136 @@ def get_stats():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# 단어 조회 API (개별)
+@app.route('/api/word/<int:word_id>', methods=['GET'])
+def get_word(word_id):
+    try:
+        word = Word.query.get_or_404(word_id)
+        return jsonify({
+            'id': word.id,
+            'word': word.word,
+            'meaning': word.meaning,
+            'example': word.example,
+            'grade': word.grade,
+            'source': word.source,
+            'created_at': word.created_at.strftime('%Y-%m-%d %H:%M:%S') if word.created_at else None
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# 단어 수정 API
+@app.route('/api/word/<int:word_id>', methods=['PUT'])
+def update_word(word_id):
+    try:
+        word = Word.query.get_or_404(word_id)
+        data = request.json
+        
+        # 필드 업데이트
+        if 'word' in data:
+            word.word = data['word']
+        if 'meaning' in data:
+            word.meaning = data['meaning']
+        if 'example' in data:
+            word.example = data['example']
+        if 'grade' in data:
+            word.grade = data['grade']
+        if 'source' in data:
+            word.source = data['source']
+        
+        db.session.commit()
+        
+        return jsonify({'message': '단어가 수정되었습니다.', 'id': word.id})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+# 퀴즈 시작 페이지
+@app.route('/quiz/start')
+def quiz_start():
+    return render_template('quiz_start.html')
+
+# 퀴즈 진행 페이지
+@app.route('/quiz')
+def quiz():
+    return render_template('quiz.html')
+
+# 다음 문제 가져오기 API
+@app.route('/api/quiz/next', methods=['POST'])
+def get_next_question():
+    try:
+        data = request.json
+        grade = data.get('grade', 'all')
+        used_ids = data.get('usedIds', [])
+        
+        # 쿼리 작성
+        query = Word.query
+        
+        # 학년 필터링
+        if grade != 'all':
+            query = query.filter_by(grade=grade)
+        
+        # 이미 사용한 단어 제외
+        if used_ids:
+            query = query.filter(~Word.id.in_(used_ids))
+        
+        # 랜덤하게 하나 선택
+        words = query.all()
+        if not words:
+            return jsonify({'error': 'No more words available'}), 404
+        
+        import random
+        word = random.choice(words)
+        
+        return jsonify({
+            'id': word.id,
+            'word': word.word,
+            'meaning': word.meaning,
+            'grade': word.grade
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# 초성 힌트 생성 함수
+def get_chosung(text):
+    CHOSUNG = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 
+               'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
+    
+    result = []
+    for char in text:
+        if '가' <= char <= '힣':
+            # 한글 유니코드 계산
+            char_code = ord(char) - ord('가')
+            chosung_index = char_code // (21 * 28)
+            result.append(CHOSUNG[chosung_index])
+        else:
+            # 한글이 아닌 경우 그대로 표시
+            result.append(char)
+    
+    return ''.join(result)
+
+# 초성 힌트 API
+@app.route('/api/quiz/hint', methods=['POST'])
+def get_hint():
+    try:
+        data = request.json
+        word = data.get('word', '')
+        
+        if not word:
+            return jsonify({'error': 'Word is required'}), 400
+        
+        hint = get_chosung(word)
+        return jsonify({'hint': hint})
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     # 데이터베이스 초기화
     with app.app_context():
-        try:
-            # MySQL 연결 테스트
-            db.engine.connect()
-            print("[SUCCESS] MySQL database connected successfully.")
-            print(f"   Server: {MYSQL_HOST}:{MYSQL_PORT}")
-            print(f"   Database: {MYSQL_DATABASE}")
-            print(f"   User: {MYSQL_USER}")
-            
-            # 테이블 생성
-            db.create_all()
-            print("[SUCCESS] Database tables created.")
-            
-            # 테이블 확인
-            from sqlalchemy import inspect
-            inspector = inspect(db.engine)
-            tables = inspector.get_table_names()
-            if 'vocabulary_words' in tables:
-                print("[SUCCESS] vocabulary_words table confirmed.")
-            
-        except Exception as e:
-            print(f"[ERROR] Database connection failed: {e}")
-            print("\nFalling back to local SQLite...")
-            # SQLite로 폴백
-            basedir = os.path.abspath(os.path.dirname(__file__))
-            app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "vocabulary.db")}'
-            db.create_all()
-            print("[SUCCESS] Using local SQLite database.")
+        # 테이블 생성
+        db.create_all()
+        print("[SUCCESS] Using local SQLite database.")
+        print(f"   Database: {os.path.join(basedir, 'vocabulary.db')}")
     
     app.run(debug=True, port=5001)  # 기존 앱과 포트 충돌 방지
